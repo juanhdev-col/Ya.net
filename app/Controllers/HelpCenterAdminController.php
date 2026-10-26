@@ -13,8 +13,8 @@ class HelpCenterAdminController
             session_start();
         }
 
-        $roleId = (int)($_SESSION['usuario']['role_id'] ?? 3);
-        if (empty($_SESSION['usuario']) || $roleId > 2) {
+        $roleId = (int)($_SESSION['usuario']['role_id'] ?? 0);
+        if (empty($_SESSION['usuario']) || !in_array($roleId, [1, 2], true)) {
             header('Location: /yaconecta/public/centro-ayuda?error=no_autorizado');
             exit;
         }

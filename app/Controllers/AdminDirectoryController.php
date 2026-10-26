@@ -8,7 +8,7 @@ class AdminDirectoryController
 {
     public function index()
     {
-        if (session_status() === PHP_SESSION_NONE) session_start();
+        $this->requireAdmin();
         $busqueda = trim($_GET['search'] ?? $_GET['q'] ?? '');
         $area     = trim($_GET['area'] ?? '');
         $cargo = trim($_GET['cargo'] ?? '');
@@ -20,7 +20,6 @@ class AdminDirectoryController
         $cargosTotal = count($filtrosDirectorio['cargos']);
         $usuariosSistema = 0;
         try { $usuariosSistema = (int)\Config\Database::getConnection()->query('SELECT COUNT(*) FROM users')->fetchColumn(); } catch (\Throwable $e) {}
-        $adminPreview = empty($_SESSION['usuario']) || (int)($_SESSION['usuario']['role_id'] ?? 3) > 2;
         if (!$colaboradores) {
             $colaboradores = [
                 ['id'=>-1,'nombre'=>'Juan Andrés','apellido'=>'Henao','cargo'=>'Analista de control interno y calidad','area'=>'Control Interno y Calidad','email'=>'','telefono'=>'','extension'=>'','foto'=>'','estado'=>'activo'],
@@ -161,7 +160,7 @@ class AdminDirectoryController
     private function requireAdmin(): void
     {
         if (session_status() === PHP_SESSION_NONE) session_start();
-        if (empty($_SESSION['usuario']) || (int)($_SESSION['usuario']['role_id'] ?? 3) > 2) {
+        if (empty($_SESSION['usuario']) || !in_array((int)($_SESSION['usuario']['role_id'] ?? 0), [1, 2], true)) {
             http_response_code(403);
             exit('Acceso restringido. Inicia sesión con una cuenta administradora.');
         }

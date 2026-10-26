@@ -6,6 +6,15 @@ use App\Models\AppItem;
 
 class AppController {
 
+    private function requireAdmin(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (empty($_SESSION['usuario']) || !in_array((int)($_SESSION['usuario']['role_id'] ?? 0), [1, 2], true)) {
+            http_response_code(403);
+            exit('Acceso restringido. Inicia sesión con una cuenta administradora.');
+        }
+    }
+
     // --- Vista Pública de Apps ---
     public function index() {
         $categoria = trim($_GET['cat'] ?? $_GET['category'] ?? '');
@@ -36,6 +45,7 @@ class AppController {
 
     // --- Panel Admin Apps (GET /admin/apps) ---
     public function admin() {
+        $this->requireAdmin();
         $busqueda  = trim($_GET['search'] ?? $_GET['q'] ?? '');
         $categoria = trim($_GET['cat'] ?? '');
         $estado    = trim($_GET['estado'] ?? '');
@@ -59,6 +69,7 @@ class AppController {
 
     // --- Guardar / Actualizar App (POST /admin/apps/store) ---
     public function store() {
+        $this->requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = $_POST['id'] ?? null;
 
@@ -91,6 +102,7 @@ class AppController {
 
     // --- Eliminar App (GET/POST /admin/apps/delete) ---
     public function delete() {
+        $this->requireAdmin();
         $id = $_GET['id'] ?? $_POST['id'] ?? null;
 
         if ($id && method_exists(AppItem::class, 'eliminar')) {

@@ -6,8 +6,18 @@ use App\Models\Idea;
 
 class AdminIdeasController
 {
+    private function requireAdmin(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (empty($_SESSION['usuario']) || !in_array((int)($_SESSION['usuario']['role_id'] ?? 0), [1, 2], true)) {
+            http_response_code(403);
+            exit('Acceso restringido. Inicia sesión con una cuenta administradora.');
+        }
+    }
+
     public function index()
     {
+        $this->requireAdmin();
         $busqueda = trim($_GET['search'] ?? $_GET['q'] ?? '');
         $estado   = trim($_GET['estado'] ?? '');
 
@@ -25,6 +35,7 @@ class AdminIdeasController
 
     public function updateStatus()
     {
+        $this->requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id            = $_POST['id'] ?? null;
             $estado        = trim($_POST['estado'] ?? 'Pendiente');
@@ -41,6 +52,7 @@ class AdminIdeasController
 
     public function delete()
     {
+        $this->requireAdmin();
         $id = $_GET['id'] ?? $_POST['id'] ?? null;
         if ($id) {
             Idea::eliminar($id);

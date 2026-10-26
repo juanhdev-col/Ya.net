@@ -6,16 +6,14 @@ use App\Models\CompanyInfo;
 
 class AdminCompanyController
 {
-    private bool $galleryPreview = false;
-
     private function checkAdmin(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
-        $roleId = (int)($_SESSION['usuario']['role_id'] ?? 3);
-        if (empty($_SESSION['usuario']) || $roleId > 2) {
+        $roleId = (int)($_SESSION['usuario']['role_id'] ?? 0);
+        if (empty($_SESSION['usuario']) || !in_array($roleId, [1, 2], true)) {
             header('Location: /yaconecta/public/quienes-somos?error=no_autorizado');
             exit;
         }
@@ -39,22 +37,10 @@ class AdminCompanyController
         }
     }
 
-    /** Panel de galería. En localhost permite vista previa de solo lectura. */
+    /** Panel de galería corporativa. */
     public function gallery()
     {
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        $roleId = (int)($_SESSION['usuario']['role_id'] ?? 0);
-        if (!in_array($roleId, [1, 2], true)) {
-            $host = strtolower((string)($_SERVER['HTTP_HOST'] ?? ''));
-            $host = preg_replace('/:\\d+$/', '', $host);
-            if (in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {
-                $this->galleryPreview = true;
-            } else {
-                http_response_code(403);
-                echo 'Acceso restringido. Inicia sesión como administrador.';
-                return;
-            }
-        }
+        $this->checkAdmin();
 
         $media = CompanyInfo::getMedia();
         $search = trim($_GET['search'] ?? '');
@@ -73,7 +59,6 @@ class AdminCompanyController
             $path = dirname(__DIR__, 2) . '/public' . (string)($item['file_path'] ?? '');
             if (is_file($path)) $totalBytes += (int)filesize($path);
         }
-        $galleryPreview = $this->galleryPreview;
         $pageTitle = 'Ya.Net | Administración de Galería Corporativa';
         require dirname(__DIR__, 2) . '/views/admin/galeria/index.php';
     }

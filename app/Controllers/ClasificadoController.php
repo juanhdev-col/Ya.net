@@ -6,9 +6,7 @@ use App\Models\Clasificado;
 
 class ClasificadoController
 {
-    private bool $adminPreview = false;
-
-    private function verificarPermisoAdmin(bool $allowLocalPreview = false): void
+    private function verificarPermisoAdmin(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -17,12 +15,6 @@ class ClasificadoController
         $roleId = isset($_SESSION['usuario']['role_id']) ? (int) $_SESSION['usuario']['role_id'] : 0;
 
         if (!in_array($roleId, [1, 2], true)) {
-            $host = strtolower((string)($_SERVER['HTTP_HOST'] ?? ''));
-            $host = preg_replace('/:\\d+$/', '', $host);
-            if ($allowLocalPreview && in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {
-                $this->adminPreview = true;
-                return;
-            }
             header('HTTP/1.1 403 Forbidden');
             echo "<div style='font-family:sans-serif; text-align:center; padding:50px;'>
                     <h2 style='color:#0A2540;'>Acceso Restringido</h2>
@@ -113,7 +105,7 @@ class ClasificadoController
 
     public function admin(): void
     {
-        $this->verificarPermisoAdmin(true);
+        $this->verificarPermisoAdmin();
 
         $todosLosAnuncios = Clasificado::obtenerTodos();
         $busqueda = trim($_GET['search'] ?? $_GET['q'] ?? '');
@@ -139,7 +131,6 @@ class ClasificadoController
         $totalPublicadas = count(array_filter($todosLosAnuncios, static fn(array $item): bool => ($item['status'] ?? '') === 'approved'));
         $totalRechazadas = count(array_filter($todosLosAnuncios, static fn(array $item): bool => ($item['status'] ?? '') === 'rejected'));
         $publicacionesRecientes = array_slice($todosLosAnuncios, 0, 3);
-        $classifiedPreview = $this->adminPreview;
         $pageTitle = 'Ya.Net | Administración de Clasificados Internos';
 
         $ds = DIRECTORY_SEPARATOR;

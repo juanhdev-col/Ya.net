@@ -58,6 +58,12 @@ class PopupController
             session_start();
         }
 
+        $usuario = $_SESSION['usuario'] ?? null;
+        if (!$usuario || !in_array((int)($usuario['role_id'] ?? 0), [1, 2], true)) {
+            http_response_code(403);
+            exit('Acceso restringido. Inicia sesión con una cuenta administradora.');
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $titulo = trim($_POST['titulo'] ?? '');
             $tipo = trim($_POST['tipo'] ?? 'Comunicaciones Importantes');
@@ -105,6 +111,13 @@ class PopupController
     // Cambiar Estado o Eliminar
     public function cambiarEstado(): void
     {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $usuario = $_SESSION['usuario'] ?? null;
+        if (!$usuario || !in_array((int)($usuario['role_id'] ?? 0), [1, 2], true)) {
+            http_response_code(403);
+            exit('Acceso restringido. Inicia sesión con una cuenta administradora.');
+        }
+
         $id = (int)($_GET['id'] ?? 0);
         $accion = $_GET['accion'] ?? '';
 

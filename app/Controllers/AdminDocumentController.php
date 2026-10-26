@@ -6,24 +6,11 @@ use App\Models\Documento;
 
 class AdminDocumentController
 {
-    private bool $previewMode = false;
-
-    private function isLocalRequest(): bool
-    {
-        $host = strtolower((string)($_SERVER['HTTP_HOST'] ?? ''));
-        $host = preg_replace('/:\\d+$/', '', $host);
-        return in_array($host, ['localhost', '127.0.0.1', '::1'], true);
-    }
-
     private function checkAdmin(): void
     {
         if (session_status() === PHP_SESSION_NONE) session_start();
-        $roleId = (int)($_SESSION['usuario']['role_id'] ?? 3);
-        if (empty($_SESSION['usuario']) || $roleId > 2) {
-            if ($this->isLocalRequest()) {
-                $this->previewMode = true;
-                return;
-            }
+        $roleId = (int)($_SESSION['usuario']['role_id'] ?? 0);
+        if (empty($_SESSION['usuario']) || !in_array($roleId, [1, 2], true)) {
             header('Location: /yaconecta/public/documentos?error=no_autorizado');
             exit;
         }
@@ -63,7 +50,7 @@ class AdminDocumentController
     public function index(): void
     {
         $this->checkAdmin();
-        if (!$this->previewMode) $_SESSION['csrf_documentos'] = bin2hex(random_bytes(32));
+        $_SESSION['csrf_documentos'] = bin2hex(random_bytes(32));
         $busqueda = trim($_GET['search'] ?? $_GET['q'] ?? '');
         $categoria = trim($_GET['cat'] ?? '');
         $area = trim($_GET['area'] ?? '');
@@ -79,7 +66,6 @@ class AdminDocumentController
         $totalArchivados = count($documentosObsoletos);
         $tiposDocumento = array_values(array_unique(array_column(Documento::obtenerTodos(), 'doc_type')));
         $csrfToken = $_SESSION['csrf_documentos'] ?? '';
-        $adminPreview = $this->previewMode;
         $pageTitle = 'Ya.Net | Administración Documental';
         require dirname(__DIR__, 2) . '/views/admin/documentos/index.php';
     }
@@ -87,7 +73,6 @@ class AdminDocumentController
     public function store(): void
     {
         $this->checkAdmin();
-        if ($this->previewMode) { http_response_code(403); exit('La vista previa no permite guardar documentos. Inicia sesión como administrador.'); }
         $this->checkCsrf();
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit; }
         $filePath = $this->guardarArchivo();
@@ -109,7 +94,6 @@ class AdminDocumentController
     public function update(): void
     {
         $this->checkAdmin();
-        if ($this->previewMode) { http_response_code(403); exit('La vista previa no permite editar documentos. Inicia sesión como administrador.'); }
         $this->checkCsrf();
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit; }
         $filePath = $this->guardarArchivo();
@@ -133,7 +117,6 @@ class AdminDocumentController
     public function archive(): void
     {
         $this->checkAdmin();
-        if ($this->previewMode) { http_response_code(403); exit('La vista previa no permite archivar documentos. Inicia sesión como administrador.'); }
         $this->checkCsrf();
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit; }
         $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);

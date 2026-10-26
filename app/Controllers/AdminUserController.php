@@ -20,6 +20,15 @@ use Config\Database;
 
 class AdminUserController
 {
+    private function requireAdmin(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (empty($_SESSION['usuario']) || (int)($_SESSION['usuario']['role_id'] ?? 0) !== 1) {
+            http_response_code(403);
+            exit('Acceso restringido. Esta sección requiere rol de Administrador General.');
+        }
+    }
+
     private function getDB()
     {
         if (class_exists('Config\Database')) {
@@ -30,6 +39,7 @@ class AdminUserController
 
     public function index()
     {
+        $this->requireAdmin();
         $db = $this->getDB();
         $usuarios = [];
         $rolesBD = [];
@@ -113,6 +123,7 @@ class AdminUserController
 
     public function store()
     {
+        $this->requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db = $this->getDB();
 
@@ -149,6 +160,7 @@ class AdminUserController
 
     public function update()
     {
+        $this->requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db = $this->getDB();
             $id = $_POST['id'] ?? null;
@@ -175,6 +187,7 @@ class AdminUserController
 
     public function delete()
     {
+        $this->requireAdmin();
         $id = $_GET['id'] ?? $_POST['id'] ?? null;
         $db = $this->getDB();
 

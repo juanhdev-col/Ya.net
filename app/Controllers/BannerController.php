@@ -6,8 +6,18 @@ use App\Models\Banner;
 
 class BannerController
 {
+    private function requireAdmin(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (empty($_SESSION['usuario']) || !in_array((int)($_SESSION['usuario']['role_id'] ?? 0), [1, 2], true)) {
+            http_response_code(403);
+            exit('Acceso restringido. Inicia sesión con una cuenta administradora.');
+        }
+    }
+
     public function admin()
     {
+        $this->requireAdmin();
         $banners = [];
         if (class_exists('App\Models\Banner')) {
             $banners = Banner::obtenerTodos();
@@ -25,6 +35,7 @@ class BannerController
 
     public function store()
     {
+        $this->requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('App\Models\Banner')) {
             try {
                 $urlMedia = $_POST['url_media'] ?? '';
@@ -69,6 +80,7 @@ class BannerController
 
     public function delete()
     {
+        $this->requireAdmin();
         $id = $_GET['id'] ?? null;
         if ($id && class_exists('App\Models\Banner')) {
             Banner::eliminar((int)$id);

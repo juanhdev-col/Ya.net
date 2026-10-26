@@ -6,6 +6,12 @@ class AdminController
 {
     public function index()
     {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (empty($_SESSION['usuario']) || !in_array((int)($_SESSION['usuario']['role_id'] ?? 0), [1, 2], true)) {
+            http_response_code(403);
+            exit('Acceso restringido. Inicia sesión con una cuenta administradora.');
+        }
+
         // Datos maquetados para la vista previa del Dashboard
         $stats = [
             'total_documentos'    => 24,

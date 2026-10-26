@@ -6,19 +6,11 @@ use App\Models\Noticia;
 
 class NoticiaController
 {
-    private bool $adminPreview = false;
-
-    private function requireAdmin(bool $allowLocalPreview = false): void
+    private function requireAdmin(): void
     {
         if (session_status() === PHP_SESSION_NONE) session_start();
         $roleId = (int)($_SESSION['usuario']['role_id'] ?? 0);
         if (in_array($roleId, [1, 2], true)) return;
-        $host = strtolower((string)($_SERVER['HTTP_HOST'] ?? ''));
-        $host = preg_replace('/:\\d+$/', '', $host);
-        if ($allowLocalPreview && in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {
-            $this->adminPreview = true;
-            return;
-        }
         http_response_code(403);
         echo 'Acceso restringido. Inicia sesión como administrador.';
         exit;
@@ -94,7 +86,7 @@ class NoticiaController
     // Vista de Administración (Panel de Gestión y Aprobación)
     public function admin()
     {
-        $this->requireAdmin(true);
+        $this->requireAdmin();
         $noticias = [];
 
         // 1. Obtener listado real de noticias desde la BD
@@ -130,7 +122,6 @@ class NoticiaController
         $categoriasNoticias = array_values(array_unique(array_filter(array_map(static fn(array $item): string => trim((string)($item['categoria'] ?? '')), $todasLasNoticias))));
         sort($categoriasNoticias, SORT_NATURAL | SORT_FLAG_CASE);
         $pageTitle = 'Ya.Net | Administración de Noticias y Comunicaciones';
-        $noticiasPreview = $this->adminPreview;
         $totalNoticias = count($todasLasNoticias);
         $totalComunicados = count(array_filter($todasLasNoticias, static fn(array $item): bool => stripos((string)($item['tipo'] ?? $item['categoria'] ?? ''), 'comunic') !== false));
         $categoriasConteo = [];

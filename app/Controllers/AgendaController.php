@@ -6,11 +6,10 @@ use App\Models\EventoAgenda;
 
 class AgendaController
 {
-    private bool $previewMode = false;
     /**
      * Verifica que el usuario logueado tenga rol de Admin General (1) o Admin Contenido (2)
      */
-    private function verificarPermiso(bool $allowLocalPreview = false): void
+    private function verificarPermiso(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -21,12 +20,6 @@ class AgendaController
 
         // Permitir acceso ÚNICAMENTE a Admin General (1) y Admin Contenido (2)
         if (!in_array($roleId, [1, 2], true)) {
-            $host = strtolower((string)($_SERVER['HTTP_HOST'] ?? ''));
-            $host = preg_replace('/:\\d+$/', '', $host);
-            if ($allowLocalPreview && in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {
-                $this->previewMode = true;
-                return;
-            }
             header('HTTP/1.1 403 Forbidden');
             echo "<div style='font-family:sans-serif; text-align:center; padding:50px;'>
                     <h2 style='color:#0A2540;'>Acceso Restringido</h2>
@@ -40,7 +33,7 @@ class AgendaController
     // Vista Panel Admin de la Agenda
     public function admin(): void
     {
-        $this->verificarPermiso(true);
+        $this->verificarPermiso();
 
         $todosLosEventos = EventoAgenda::obtenerTodos();
         $busqueda = trim($_GET['search'] ?? $_GET['q'] ?? '');
@@ -64,7 +57,6 @@ class AgendaController
         usort($proximosEventos, static fn(array $a, array $b): int => [$a['fecha_evento'] ?? '', $a['hora_evento'] ?? ''] <=> [$b['fecha_evento'] ?? '', $b['hora_evento'] ?? '']);
         $proximosEventos = array_slice($proximosEventos, 0, 3);
         $pageTitle = 'Ya.Net | Administración de Eventos';
-        $adminPreview = $this->previewMode;
 
         $ds = DIRECTORY_SEPARATOR;
         $vista = dirname(__DIR__, 2) . $ds . 'views' . $ds . 'admin' . $ds . 'agenda' . $ds . 'index.php';
