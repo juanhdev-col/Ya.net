@@ -1,0 +1,79 @@
+/* ==========================================================================
+   1. CONFIGURACIÓN GLOBAL Y VARIABLES
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+    --yj-blue: #10388B;
+    --yj-orange: #ED8533;
+    --yj-blue-dark: #0A255C;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #f3f4f6;
+    color: #1f2937;
+}
+
+/* ==========================================================================
+   2. NAVEGACIÓN (NAVBAR)
+   ========================================================================== */
+.nav-dropdown-item {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    color: #1f2937;
+    transition: all 0.2s ease;
+}
+.nav-dropdown-item:hover {
+    background-color: #f3f4f6;
+    color: var(--yj-blue);
+}
+
+/* ==========================================================================
+   3. COMPONENTES REUTILIZABLES (TARJETAS Y BOTONES)
+   ========================================================================== */
+.yj-card {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.yj-btn-primary {
+    background-color: var(--yj-orange);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s ease;
+}
+.yj-btn-primary:hover {
+    background-color: #ea580c;
+}
+
+/* ==========================================================================
+   4. DIRECTORIO CORPORATIVO
+   ========================================================================== */
+.avatar-border {
+    border: 2px solid var(--yj-orange);
+}
+
+/* ==========================================================================
+   5. FOOTER
+   ========================================================================== */
+.social-icon-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.social-icon-btn:hover {
+    background-color: var(--yj-orange);
+    transform: scale(1.1);
+}
